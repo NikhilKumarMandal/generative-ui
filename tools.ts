@@ -99,9 +99,18 @@ export function initTools(database: DatabaseSync) {
 
             const rows = stmt.all(from, to);
 
-            console.log(rows);
+            console.log("rows",rows);
 
-            return JSON.stringify(rows);
+            const result = rows.map(row => {
+                return {
+                    [groupBy]: row.period,
+                    amount: row.total,
+                }
+            })
+            return JSON.stringify({
+                type: "chart",
+                data: result, labelKey: groupBy
+            });
         },
         {
             name: 'generate_expense_chart',

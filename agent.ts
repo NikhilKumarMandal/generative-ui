@@ -107,7 +107,7 @@ const agent = graph.compile({
 });
 
 async function main() {
-    const response = await agent.invoke(
+    const response = await agent.stream(
         {
             messages: [
                 {
@@ -116,10 +116,17 @@ async function main() {
                 },
             ],
         },
-        { configurable: { thread_id: '1' } }
+        {
+            streamMode: "updates",
+            configurable: { thread_id: '1' }
+        }
     );
 
-    console.log(JSON.stringify(response, null, 2));
+    for await (const chunk of response) {
+        console.log("Chunk",chunk);  
+    }
+
+    // console.log(JSON.stringify(response, null, 2));
 }
 
 main();

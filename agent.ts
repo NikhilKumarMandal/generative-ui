@@ -38,7 +38,9 @@ async function callModel(state: typeof MessagesAnnotation.State) {
             role: "system",
             content: `
             You are helpfull expense tracking assistant. Current datetime: ${new Date().toISOString()}.
-            call add_expense tool to add the expense to database.
+            Call add_expense tool to add the expense to database.
+            Call get_expenses tool to get the list of expenses for given date range.
+            Call generate_expense_chart tool only when user needs to visualize expense
             `
         },
         ...state.messages

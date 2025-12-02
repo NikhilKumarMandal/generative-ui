@@ -59,7 +59,47 @@ export function initTools(database: DatabaseSync) {
         }
     );
 
-    return [addExpense, getExpenses];
+    /**
+     * Generate chart
+     */
+
+    const generateChart = tool(
+        ({ from, to, groupBy }) => {
+            console.log("args", { from, to, groupBy })
+            // YYY-MM-DD -> month -> 2025-2-12 -> 2025-12
+            
+            const query = `
+            SELECT  strftime('%Y-%m',date) as period, SUM(amount) as total
+            FROM expenses
+            WHERE date BETWEEN ? AND ?
+            GROUP BY period
+            ORDER BY period
+            `
+            const stmt = database.prepare(query);
+
+            const rows = stmt.all(from, to);
+
+            console.log(rows);
+
+            return JSON.stringify(rows);
+        },
+        {
+            name: 'generate_expense_chart',
+            description:
+                'Generate expense charts by querying the database and grouping expenses by month,week or date.',
+            schema: z.object({
+                from: z
+                    .string()
+                    .describe('Start date in YYYY-MM-DD format'),
+                to: z
+                    .string()
+                    .describe('End date in YYYY-MM-DD format'),
+                groupBy: z.enum(["month","week","date"]).describe("How to group the data: bymonth,week or date")
+            }),
+        }
+    );
+
+    return [addExpense, getExpenses,generateChart];
 
 };
 

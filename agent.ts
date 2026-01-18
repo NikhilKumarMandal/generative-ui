@@ -102,31 +102,31 @@ const graph = new StateGraph(MessagesAnnotation)
         __end__: "__end__"
     });
 
-const agent = graph.compile({
+export const agent = graph.compile({
     checkpointer: new MemorySaver(),
 });
 
-async function main() {
-    const response = await agent.stream(
-        {
-            messages: [
-                {
-                    role: 'user',
-                    content: 'How much i have spent this month?',
-                },
-            ],
-        },
-        {
-            streamMode: "updates",
-            configurable: { thread_id: '1' }
-        }
-    );
+// async function main() {
+//     const response = await agent.stream(
+//         {
+//             messages: [
+//                 {
+//                     role: 'user',
+//                     content: 'How much i have spent this month?',
+//                 },
+//             ],
+//         },
+//         {
+//             streamMode: "updates",
+//             configurable: { thread_id: '1' }
+//         }
+//     );
 
-    for await (const chunk of response) {
-        console.log("Chunk",chunk);  
-    }
+//     for await (const chunk of response) {
+//         console.log("Chunk",chunk);  
+//     }
 
-    // console.log(JSON.stringify(response, null, 2));
-}
+//     // console.log(JSON.stringify(response, null, 2));
+// }
 
-main();
+// main();

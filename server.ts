@@ -1,5 +1,7 @@
 import express from 'express';
 import cors from 'cors';
+import type { StreamMessage } from './types';
+import { agent } from './agent';
 
 
 const app = express();
@@ -22,11 +24,59 @@ app.post('/chat', async (req, res) => {
         'Content-Type': 'text/event-stream',
     });
 
+    const response = await agent.stream(
+        {
+            messages: [
+                {
+                    role: 'user',
+                    content: query,
+                },
+            ],
+        },
+        {
+            streamMode: ['messages', 'custom'],
+            // todo: generate dynamically
+            configurable: { thread_id: '1' },
+        }
+    );
 
-    setInterval(() => {
-      res.write('event: cgPing\n')
-      res.write(`data: ${query}\n\n`)
-    }, 1000)
+    for await (const [eventType, chunk] of response) {
+        console.log('eventtype: ', eventType);
+        let message: StreamMessage = {} as StreamMessage;
+
+        if (eventType === 'custom') {
+            console.log('chunk', chunk);
+            message = chunk;
+        } else if (eventType === 'messages') {
+            if (chunk[0].content === '') continue;
+
+            const messageType = chunk[0].type;
+            if (messageType === 'ai') {
+                message = {
+                    type: 'ai',
+                    payload: { text: chunk[0].content as string },
+                };
+            } else if (messageType === 'tool') {
+                message = {
+                    type: 'tool',
+                    payload: {
+                        name: chunk[0].name!,
+                        result: JSON.parse(chunk[0].content as string),
+                    },
+                };
+            }
+        }
+
+        res.write(`event: ${eventType}\n`);
+        res.write(`data: ${JSON.stringify(message)}\n\n`);
+    }
+
+
+
+    // setInterval(() => {
+    //   res.write('event: cgPing\n')
+    //   res.write(`data: ${query}\n\n`)
+    // }, 1000)
 
     res.end();
 });
